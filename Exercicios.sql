@@ -14,7 +14,6 @@ VALUES
 	('Marketing', 'E'),
 	('Biblioteca', 'H')
 
--- TODO Patrimonio
 INSERT INTO Impressora
 VALUES
 	(1, 'XEROX', 'FACENS_XER_COLOR'),
@@ -30,14 +29,13 @@ VALUES
 	('106R03747', 'XERCOLOR', 7, 3, 'Toner'),
 	('106R03745', 'XERCOLOR', 5, 4, 'Toner'),
 	('106R03748', 'XERCOLOR', 5, 2, 'Toner'),
-	('113R00779', 'XERCOLOR', 3, null, 'Armazenador de Resíduos'),-- UPDATE 
+	('113R00779', 'XERCOLOR', 3, null, 'Armazenador de Resíduos'),
 	('56F0Z00', 'LEXMARK', 4, null, 'Armazenador de Resíduos'),
 	('78C40K0', 'LEXMARK', 1, 4, 'Toner'),
 	('78C4XY0', 'LEXMARK', 1, 1, 'Toner'),
 	('78C4XM0', 'LEXMARK', 1, 3, 'Toner'),
 	('56FBU00', 'LEXMARK', 2, 4, 'Toner')
 
--- TODO
 INSERT INTO LinkImpressoraToner
 VALUES
 	(1, 1, '15-10-2020'),
@@ -46,19 +44,18 @@ VALUES
 	(3, 7, '16-11-2020'),
 	(4, 10, '25-05-2020')
 
--- GRAÇA
-SELECT * FROM Cor
-SELECT * FROM Setor
-SELECT * FROM Suprimento
-SELECT * FROM Impressora
-SELECT * FROM LinkImpressoraToner
+-- SELECT * FROM Cor
+-- SELECT * FROM Setor
+-- SELECT * FROM Suprimento
+-- SELECT * FROM Impressora
+-- SELECT * FROM LinkImpressoraToner
 
-UPDATE 
-	Suprimento 
-SET
-	Marca = 'LEXMARK'
-WHERE
-	Marca = 'LexMark'
+--UPDATE 
+--	Suprimento 
+--SET
+--	Marca = 'LEXMARK'
+--WHERE
+--	Marca = 'LexMark'
 
 
 -- Views
@@ -185,9 +182,27 @@ FROM
 -- Começamos com a tabela Cor pois ela é a mais simples, posteriormente fomos para a tabela Setor, após a criação desses duas tabelas, ficou a escolha entre  
 -- Impressora e Suprimento, e apenas com todas as tabelas criadas, ai sim, finalizamos com a tabela LinkImpressoraToner.
 
+-- 6. Escreva uma visão que exiba apenas algumas colunas da tabela principal de sua base de dados.
+GO
+CREATE OR ALTER VIEW vwLinkImpressoraToner AS
+	SELECT 
+		I.Nome, S.Descricao, C.Nome AS Cor, ST.Bloco, FORMAT(L.DataTroca,'dd/MM/yyyy') AS DataTroca
+	FROM 
+		LinkImpressoraToner AS L INNER JOIN Impressora AS I 
+			ON L.IDImpressora = I.IDImpressora
+		INNER JOIN Suprimento AS S
+			ON L.IDToner = S.IDSuprimento
+		INNER JOIN Setor AS ST
+			ON I.IDSetor = ST.IDSetor
+		LEFT JOIN Cor AS C
+			ON S.IDCor = C.IDCor
+GO
+
+SELECT * FROM vwLinkImpressoraToner
+
 -- 7. Dê exemplo de um comando utilizando subconsultas que utilize o operador = ou <,>, <=, in, not in.
 SELECT
-	I.Nome, S.Nome
+	I.Nome, S.Nome AS Setor
 FROM
 	Impressora AS I INNER JOIN Setor AS S 
 		ON I.IDImpressora = S.IDSetor
@@ -200,3 +215,33 @@ FROM
 	Suprimento AS S
 	WHERE 
 		S.Quantidade > (SELECT AVG(Quantidade)MediaSuprimentos FROM Suprimento)
+
+SELECT
+	S.Codigo, S.Marca, S.Descricao, S.Quantidade
+FROM
+	Suprimento AS S
+	WHERE 
+		S.Quantidade < (SELECT AVG(Quantidade)MediaSuprimentos FROM Suprimento)
+
+SELECT
+	S.Descricao, S.Marca, S.IDCor
+FROM
+	Suprimento AS S LEFT JOIN Cor AS C
+		ON S.IDCor = C.IDCor
+	WHERE 
+		S.IDCor NOT IN (SELECT IDCor FROM COR WHERE Nome = 'Magenta')
+
+SELECT
+    S.Descricao, S.Marca, S.IDCor
+FROM
+    Suprimento AS S LEFT JOIN Cor AS C
+        ON S.IDCor = C.IDCor
+    WHERE 
+        S.IDCor NOT IN (SELECT IDCor FROM COR WHERE Nome = 'Magenta')
+SELECT
+    S.Codigo, S.Marca, S.Descricao, S.Quantidade
+FROM
+    Suprimento AS S
+    WHERE 
+        S.Quantidade < (SELECT AVG(Quantidade)MediaSuprimentos FROM Suprimento)
+
